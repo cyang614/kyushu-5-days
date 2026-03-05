@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>九州之旅 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --red:#dc2626;--red-dark:#991b1b;
+  --orange:#f97316;--blue:#2563eb;--green:#16a34a;
+  --gray-900:#111827;--gray-700:#374151;--gray-500:#6b7280;--gray-100:#f3f4f6;
+  --safe-top:env(safe-area-inset-top);
+  --safe-bottom:env(safe-area-inset-bottom);
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Noto Sans TC',sans-serif;background:#fff;color:var(--gray-900);overflow-x:hidden}
+.serif{font-family:'Noto Serif TC',serif}
+img{max-width:100%;height:auto}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;width:100%;z-index:200;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid rgba(0,0,0,.06);padding-top:var(--safe-top)}
+nav.scrolled{box-shadow:0 2px 20px rgba(0,0,0,.08)}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-size:1.1rem;font-weight:900;color:var(--red);text-decoration:none;letter-spacing:.03em}
+.nav-links{display:flex;gap:20px;list-style:none}
+.nav-links a{font-size:.82rem;font-weight:500;color:var(--gray-500);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--red)}
+.nav-cta{background:var(--red);color:#fff;font-size:.78rem;font-weight:700;padding:7px 16px;border-radius:999px;text-decoration:none;white-space:nowrap}
+/* hamburger */
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:none;border:none;-webkit-appearance:none}
+.hamburger span{width:22px;height:2px;background:var(--gray-700);border-radius:2px;transition:all .3s;display:block}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+/* mobile drawer */
+.mobile-menu{display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:190;padding-top:calc(56px + var(--safe-top))}
+.mobile-menu.open{display:block}
+.mobile-menu-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.mobile-menu-panel{position:relative;background:#fff;width:80%;max-width:300px;height:100%;padding:24px 20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.mobile-menu-panel a{display:block;padding:14px 0;font-size:1rem;font-weight:600;color:var(--gray-700);text-decoration:none;border-bottom:1px solid #f3f4f6}
+.mobile-menu-panel a:last-child{border-bottom:none}
+.mobile-menu-panel a:active{color:var(--red)}
+
+/* ── HERO ── */
+.hero{min-height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;background:#0a0a0a}
+/* iOS fix: no fixed attachment */
+.hero-bg{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1600&q=80') center/cover no-repeat;opacity:.45;animation:heroZoom 20s ease-in-out infinite alternate;will-change:transform}
+@keyframes heroZoom{from{transform:scale(1.0)}to{transform:scale(1.08)}}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(0,0,0,.6) 0%,rgba(120,0,0,.3) 100%)}
+.hero-content{position:relative;z-index:2;text-align:center;padding:24px 20px;max-width:860px;padding-top:calc(72px + var(--safe-top))}
+.hero-eyebrow{display:inline-block;background:rgba(220,38,38,.25);border:1px solid rgba(220,38,38,.5);color:#fca5a5;font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 16px;border-radius:999px;margin-bottom:20px;animation:fadeDown .8s ease both}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:none}}
+.hero-title{font-family:'Noto Serif TC',serif;font-size:clamp(3rem,14vw,7rem);font-weight:900;color:#fff;line-height:1;margin-bottom:14px;animation:fadeUp .9s .1s ease both}
+.hero-title span{color:#f87171}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.hero-sub{color:rgba(255,255,255,.75);font-size:.9rem;margin-bottom:28px;animation:fadeUp .9s .2s ease both;line-height:1.6}
+.hero-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;animation:fadeUp .9s .3s ease both}
+.pill{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);color:#fff;font-size:.75rem;font-weight:600;padding:7px 14px;border-radius:999px}
+.scroll-hint{position:absolute;bottom:max(28px,var(--safe-bottom));left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;color:rgba(255,255,255,.4);font-size:.68rem;animation:bob 2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(7px)}}
+.scroll-hint svg{width:18px;height:18px}
+
+/* ── STATS ── */
+.stats-bar{background:var(--gray-900);padding:16px}
+.stats-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.stat{text-align:center;padding:10px 6px;border-right:1px solid rgba(255,255,255,.1)}
+.stat:last-child{border-right:none}
+.stat-num{font-size:1.6rem;font-weight:900;color:#f87171;font-family:'Noto Serif TC',serif;line-height:1}
+.stat-label{font-size:.65rem;color:rgba(255,255,255,.5);margin-top:3px}
+
+/* ── COUNTDOWN ── */
+.countdown-bar{background:linear-gradient(135deg,#1e1b4b,#312e81);padding:16px}
+.countdown-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap}
+.countdown-label{color:rgba(255,255,255,.6);font-size:.78rem}
+.countdown-units{display:flex;gap:10px}
+.cd-unit{text-align:center;background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;min-width:52px}
+.cd-num{font-size:1.5rem;font-weight:900;color:#a5b4fc;line-height:1;font-family:'Noto Serif TC',serif}
+.cd-lbl{font-size:.6rem;color:rgba(255,255,255,.4);margin-top:2px}
+.cd-gone{color:#f87171;font-weight:700;font-size:.9rem}
+
+/* ── WEATHER ── */
+.weather-section{padding:48px 16px;background:linear-gradient(135deg,#f0f9ff,#e0f2fe)}
+.weather-inner{max-width:1100px;margin:0 auto}
+.weather-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:28px}
+.weather-card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 2px 14px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.04)}
+.weather-city{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.weather-city-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.weather-city-name{font-weight:700;font-size:.9rem}
+.weather-city-date{font-size:.68rem;color:var(--gray-500)}
+.weather-days{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.weather-days::-webkit-scrollbar{display:none}
+.wd{flex-shrink:0;text-align:center;background:var(--gray-100);border-radius:10px;padding:7px 9px;min-width:48px}
+.wd.today{background:#dbeafe;border:1.5px solid #93c5fd}
+.wd-date{font-size:.6rem;color:var(--gray-500);margin-bottom:3px}
+.wd-icon{font-size:1.1rem;margin:2px 0}
+.wd-hi{font-size:.78rem;font-weight:700;color:var(--gray-900)}
+.wd-lo{font-size:.68rem;color:var(--gray-500)}
+.wd-rain{font-size:.6rem;color:#3b82f6;margin-top:2px}
+.weather-loading{text-align:center;color:var(--gray-500);font-size:.85rem;padding:24px;grid-column:1/-1}
+
+/* ── SECTION ── */
+.section-header{text-align:center;margin-bottom:32px}
+.section-eyebrow{font-size:.7rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;margin-bottom:7px}
+.section-title{font-family:'Noto Serif TC',serif;font-size:clamp(1.3rem,4vw,2rem);font-weight:900}
+
+/* ── PREP ── */
+.prep{padding:56px 16px;background:linear-gradient(135deg,#fffbeb,#fff)}
+.prep-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.prep-card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 2px 14px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.04)}
+.prep-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:14px}
+.prep-card h3{font-weight:700;font-size:.9rem;margin-bottom:12px}
+.check-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid #f3f4f6}
+.check-row:last-child{border-bottom:none}
+.check-row input{accent-color:var(--red);width:16px;height:16px;flex-shrink:0;margin-top:2px;cursor:pointer}
+.check-row label{font-size:.78rem;color:var(--gray-700);cursor:pointer;line-height:1.45}
+.check-row input:checked+label{text-decoration:line-through;color:#9ca3af}
+.hotel-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f3f4f6;font-size:.78rem}
+.hotel-row:last-child{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.65rem;font-weight:700}
+.badge-green{background:#dcfce7;color:#15803d}
+.badge-red{background:#fee2e2;color:#dc2626}
+.badge-blue{background:#dbeafe;color:#1d4ed8}
+.badge-orange{background:#ffedd5;color:#c2410c}
+.badge-yellow{background:#fef9c3;color:#854d0e}
+.badge-gray{background:#f3f4f6;color:#374151}
+
+/* ── DAY NAV ── */
+.day-nav{position:sticky;top:56px;z-index:90;background:#fff;border-bottom:2px solid #f3f4f6}
+.day-nav-inner{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;gap:2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.day-nav-inner::-webkit-scrollbar{display:none}
+.day-btn{flex-shrink:0;padding:10px 14px;font-size:.76rem;font-weight:600;color:var(--gray-500);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.day-btn.active{color:var(--red);border-bottom-color:var(--red)}
+
+/* ── MAIN ── */
+main{max-width:1100px;margin:0 auto;padding:48px 16px}
+.day-section{margin-bottom:72px}
+.day-header{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.day-bubble{width:54px;height:54px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;color:#fff;position:relative}
+.day-bubble::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid currentColor;opacity:.3}
+.day-meta{font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+.day-title{font-family:'Noto Serif TC',serif;font-size:clamp(1.2rem,4vw,1.7rem);font-weight:900}
+
+/* MAP */
+.map-wrap{border-radius:14px;overflow:hidden;margin-top:18px;border:1px solid #e5e7eb;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.map-label{background:var(--gray-900);color:#fff;padding:10px 14px;font-size:.76rem;font-weight:600;display:flex;align-items:center;gap:7px}
+.leaflet-map{height:260px;width:100%}
+/* map tap overlay for iOS */
+.map-tap-overlay{position:absolute;inset:0;z-index:400;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity .3s}
+.map-tap-overlay span{background:rgba(0,0,0,.7);color:#fff;font-size:.82rem;font-weight:700;padding:10px 20px;border-radius:999px;border:1.5px solid rgba(255,255,255,.3)}
+.map-tap-overlay.hidden{opacity:0;pointer-events:none}
+
+/* TIMELINE */
+.tl{position:relative;padding-left:44px;border-left:2px solid #f3f4f6;margin-left:10px}
+.tl-dot{position:absolute;left:-8px;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px currentColor}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-item .tl-dot{top:8px}
+.tl-card{border-radius:14px;padding:16px;font-size:.875rem}
+.card-transport{background:#eff6ff;border:1px solid #bfdbfe}
+.card-food{background:#fff7ed;border:1px solid #fed7aa}
+.card-sight{background:#fef2f2;border:1px solid #fecaca}
+.card-shrine{background:#f0fdf4;border:1px solid #bbf7d0}
+.card-shop{background:#faf5ff;border:1px solid #e9d5ff}
+.card-cafe{background:#fffbeb;border:1px solid #fde68a}
+.card-night{background:#111827;border:1px solid #374151;color:#f3f4f6}
+.card-peace{background:#1e293b;border:1px solid #334155;color:#e2e8f0}
+.card-info{background:#f0f9ff;border:1px solid #bae6fd}
+.card-tip{background:#fefce8;border:1px solid #fef08a}
+.card-car{background:#f0fdf4;border:1px solid #86efac}
+.tl-tag{display:inline-flex;align-items:center;gap:4px;font-size:.66rem;font-weight:700;padding:3px 9px;border-radius:999px;margin-right:5px;margin-bottom:4px}
+.tl-time{font-size:.7rem;color:var(--gray-500)}
+.tl-card h3{font-weight:700;font-size:.92rem;margin:7px 0 5px;color:var(--gray-900)}
+.card-night h3,.card-peace h3{color:#fff}
+.tl-card p{font-size:.8rem;line-height:1.65;color:var(--gray-700)}
+.card-night p,.card-peace p{color:#cbd5e1}
+
+/* OPTIONS */
+.options-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px}
+.option-card{background:#fff;border:2px solid #f3f4f6;border-radius:12px;padding:13px;cursor:pointer;transition:border-color .2s,box-shadow .2s;position:relative;-webkit-tap-highlight-color:transparent}
+.option-card:active{background:#fff5f5}
+.option-card.selected{border-color:var(--red);background:#fff5f5}
+.option-card.selected::after{content:'✓';position:absolute;top:9px;right:11px;font-size:.7rem;font-weight:700;color:var(--red)}
+.option-name{font-weight:700;font-size:.82rem;color:var(--gray-900);margin-bottom:3px;padding-right:20px;line-height:1.3}
+.option-loc{font-size:.7rem;color:var(--gray-500);margin-bottom:5px}
+.option-desc{font-size:.73rem;color:var(--gray-700);line-height:1.5}
+.option-price{font-size:.7rem;font-weight:700;color:var(--orange);margin-top:6px}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.info-box{background:rgba(255,255,255,.07);border-radius:10px;padding:10px;font-size:.76rem}
+.card-night .info-box,.card-peace .info-box{color:#e2e8f0}
+.info-box strong{display:block;margin-bottom:3px;font-size:.78rem}
+.card-night .info-box strong,.card-peace .info-box strong{color:#fff}
+.sub-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:8px}
+.sub-box{background:#fff;border-radius:10px;padding:10px;font-size:.76rem;color:var(--gray-700);box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.sub-box strong{display:block;color:var(--gray-900);margin-bottom:3px;font-size:.78rem}
+
+/* BUDGET */
+.budget-strip{background:linear-gradient(135deg,var(--gray-900),#1a1a2e);border-radius:18px;padding:22px;margin-bottom:24px}
+.budget-title{color:#fff;font-weight:700;font-size:.95rem;margin-bottom:16px}
+.budget-days{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+.budget-day{background:rgba(255,255,255,.07);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;border:2px solid transparent;transition:all .2s;-webkit-tap-highlight-color:transparent}
+.budget-day.active{border-color:#f87171;background:rgba(220,38,38,.15)}
+.budget-day-label{font-size:.6rem;color:rgba(255,255,255,.5);margin-bottom:3px}
+.budget-day-num{font-size:.78rem;font-weight:700;color:#f87171}
+.budget-breakdown{display:none;grid-template-columns:repeat(2,1fr);gap:6px}
+.budget-breakdown.visible{display:grid}
+.b-item{display:flex;justify-content:space-between;background:rgba(255,255,255,.05);border-radius:9px;padding:9px 12px;font-size:.76rem}
+.b-label{color:rgba(255,255,255,.7)}
+.b-val{color:#fbbf24;font-weight:700}
+.budget-total{margin-top:14px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center}
+.b-total-label{color:rgba(255,255,255,.8);font-size:.82rem}
+.b-total-val{color:#f87171;font-size:1.1rem;font-weight:900}
+
+/* HOTEL */
+.hotel-strip{display:flex;align-items:center;gap:11px;background:var(--gray-900);color:#fff;border-radius:14px;padding:14px 18px;margin-top:14px}
+.hs-icon{font-size:1.4rem}
+.hs-label{font-size:.66rem;color:#9ca3af}
+.hs-name{font-weight:700;font-size:.86rem}
+.hs-badge{margin-left:auto}
+
+/* ANNOUNCE */
+.announce{background:linear-gradient(90deg,var(--red),#f97316);color:#fff;padding:11px 16px;border-radius:12px;margin-bottom:18px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:8px;line-height:1.4}
+
+/* SHOPPING */
+.shop-section{background:var(--gray-100);border-radius:20px;padding:22px;margin-top:18px}
+.shop-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.shop-title{font-weight:700;font-size:.95rem}
+.shop-counter{font-size:.72rem;color:var(--gray-500)}
+.shop-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:12px}
+.shop-item{display:flex;align-items:center;gap:7px;background:#fff;border-radius:10px;padding:9px 12px;border:1.5px solid #e5e7eb;transition:border-color .2s}
+.shop-item input{accent-color:var(--red);width:15px;height:15px;flex-shrink:0;cursor:pointer}
+.shop-item label{font-size:.76rem;color:var(--gray-700);cursor:pointer;flex:1;line-height:1.35}
+.shop-item input:checked+label{text-decoration:line-through;color:#9ca3af}
+.shop-del{background:none;border:none;color:#d1d5db;font-size:1rem;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.shop-add{display:flex;gap:7px}
+.shop-add input{flex:1;padding:10px 13px;border:1.5px solid #e5e7eb;border-radius:10px;font-size:.82rem;font-family:inherit;outline:none;-webkit-appearance:none;transition:border-color .2s}
+.shop-add input:focus{border-color:var(--red)}
+.shop-add button{background:var(--red);color:#fff;border:none;padding:10px 16px;border-radius:10px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;-webkit-appearance:none;-webkit-tap-highlight-color:transparent}
+
+/* REMINDERS */
+.rem-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.rem-card{display:flex;gap:12px;background:#fff;border-radius:16px;padding:18px;border-left:4px solid;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.rem-icon{font-size:1.4rem;flex-shrink:0}
+.rem-card h4{font-weight:700;font-size:.86rem;margin-bottom:3px}
+.rem-card p{font-size:.76rem;color:var(--gray-500);line-height:1.5}
+
+/* ACTIONS */
+.action-list{display:flex;flex-direction:column;gap:10px}
+.action-item{display:flex;gap:12px;align-items:flex-start;background:#fff;border-radius:14px;padding:16px;border-left:4px solid;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.action-item h4{font-weight:700;font-size:.86rem;margin-bottom:3px}
+.action-item p{font-size:.76rem;color:var(--gray-500);line-height:1.45}
+
+/* FOOTER */
+footer{background:var(--gray-900);color:rgba(255,255,255,.5);text-align:center;padding:36px 16px calc(36px + var(--safe-bottom));font-size:.78rem}
+footer .f-logo{font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:7px}
+footer p{margin-top:4px}
+
+/* FADE */
+.fade-up{opacity:0;transform:translateY(24px);transition:opacity .55s ease,transform .55s ease}
+.fade-up.visible{opacity:1;transform:none}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .nav-links,.nav-cta{display:none}
+  .hamburger{display:flex}
+  .prep-grid{grid-template-columns:1fr}
+  .stats-inner{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2){border-right:none}
+  .stat:nth-child(3){border-right:1px solid rgba(255,255,255,.1);border-top:1px solid rgba(255,255,255,.1)}
+  .stat:nth-child(4){border-top:1px solid rgba(255,255,255,.1)}
+  .weather-grid{grid-template-columns:1fr}
+  .options-grid{grid-template-columns:1fr}
+  .info-grid,.sub-grid{grid-template-columns:1fr}
+  .shop-grid{grid-template-columns:1fr}
+  .budget-days{grid-template-columns:repeat(3,1fr)}
+  .budget-breakdown{grid-template-columns:1fr}
+  .rem-grid{grid-template-columns:1fr}
+  .countdown-units{gap:7px}
+  .cd-unit{padding:7px 10px;min-width:46px}
+  .cd-num{font-size:1.3rem}
+  .hero-pills{gap:6px}
+  .pill{font-size:.7rem;padding:6px 12px}
+}
+@media(max-width:400px){
+  .budget-days{grid-template-columns:repeat(3,1fr)}
+  .budget-day-label{font-size:.55rem}
+  .tl{padding-left:36px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <div class="nav-inner">
+    <a class="logo" href="#">探索日本 🌸</a>
+    <ul class="nav-links">
+      <li><a href="#weather">天氣</a></li>
+      <li><a href="#day1">Day1</a></li>
+      <li><a href="#day2">Day2</a></li>
+      <li><a href="#day3">Day3</a></li>
+      <li><a href="#day4">Day4</a></li>
+      <li><a href="#day5">Day5</a></li>
+    </ul>
+    <a class="nav-cta" href="#day1" style="display:none" id="desktop-cta">查看行程 →</a>
+    <button class="hamburger" id="hamburger" aria-label="選單">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu-bg" id="menu-bg"></div>
+  <div class="mobile-menu-panel">
+    <a href="#weather" onclick="closeMenu()">🌤️ 天氣預報</a>
+    <a href="#prep" onclick="closeMenu()">📋 出發前準備</a>
+    <a href="#day1" onclick="closeMenu()">Day 1 — 熊本抵達</a>
+    <a href="#day2" onclick="closeMenu()">Day 2 — 長崎</a>
+    <a href="#day3" onclick="closeMenu()">Day 3 — 佐賀</a>
+    <a href="#day4" onclick="closeMenu()">Day 4 — 熊本深度</a>
+    <a href="#day5" onclick="closeMenu()">Day 5 — 返台</a>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Kyushu Trip Plan · 2026</div>
+    <h1 class="hero-title serif">九州<br/><span>5日遊</span></h1>
+    <p class="hero-sub">熊本 · 長崎 · 佐賀 ✈️<br/>2026年4月16日 — 4月20日</p>
+    <div class="hero-pills">
+      <span class="pill">✈️ 星宇 JX846</span>
+      <span class="pill">🚅 JR PASS 3日券</span>
+      <span class="pill">💴 ¥105,000</span>
+      <span class="pill">📱 eSIM 已購</span>
+      <span class="pill">🏨 4晚已訂</span>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+    滾動查看行程
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">旅遊天數</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">探索城市</div></div>
+    <div class="stat"><div class="stat-num">¥105k</div><div class="stat-label">現金預算</div></div>
+    <div class="stat"><div class="stat-num">4</div><div class="stat-label">飯店夜數</div></div>
+  </div>
+</div>
+
+<!-- COUNTDOWN -->
+<div class="countdown-bar">
+  <div class="countdown-inner">
+    <span class="countdown-label">✈️ 距離出發</span>
+    <div class="countdown-units" id="countdown-units">
+      <div class="cd-unit"><div class="cd-num" id="cd-d">--</div><div class="cd-lbl">天</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-h">--</div><div class="cd-lbl">時</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-m">--</div><div class="cd-lbl">分</div></div>
+      <div class="cd-unit"><div class="cd-num" id="cd-s">--</div><div class="cd-lbl">秒</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- WEATHER -->
+<section class="weather-section fade-up" id="weather">
+  <div class="weather-inner">
+    <div class="section-header">
+      <div class="section-eyebrow" style="color:#0369a1">Weather Forecast</div>
+      <h2 class="section-title">九州今日天氣</h2>
+      <p style="font-size:.76rem;color:var(--gray-500);margin-top:6px">資料來源：Open-Meteo · 即時天氣＋未來 7 天預報</p>
+    </div>
+    <div class="weather-grid" id="weather-grid">
+      <div class="weather-loading">🌤️ 天氣資料載入中…</div>
+    </div>
+  </div>
+</section>
+
+<!-- PREP -->
+<section class="prep fade-up" id="prep">
+  <div class="section-header">
+    <div class="section-eyebrow" style="color:#d97706">Pre-departure</div>
+    <h2 class="section-title">出發前準備清單</h2>
+  </div>
+  <div class="prep-grid">
+    <div class="prep-card">
+      <div class="prep-icon" style="background:#fee2e2">✈️</div>
+      <h3>機票</h3>
+      <div class="check-row"><input type="checkbox" id="c1" checked><label for="c1">星宇 JX846 桃園07:30 → 熊本10:45</label></div>
+      <div class="check-row"><input type="checkbox" id="c2" checked><label for="c2">NT$10,875／人，已刷卡分三期</label></div>
+      <div class="check-row"><input type="checkbox" id="c3"><label for="c3">4/16 凌晨02:00 台中搭統聯1623至桃園第一航廈</label></div>
+    </div>
+    <div class="prep-card">
+      <div class="prep-icon" style="background:#fef9c3">💴</div>
+      <h3>日幣 & 網路</h3>
+      <div class="check-row"><input type="checkbox" id="c4" checked><label for="c4">換 ¥105,000 現金（TWD 21,379）</label></div>
+      <div class="check-row"><input type="checkbox" id="c5" checked><label for="c5">Klook eSIM NT$333／人</label></div>
+      <div class="check-row"><input type="checkbox" id="c6"><label for="c6">JR PASS 北九州3日券，熊本站購買 ≈ NT$3,000／人</label></div>
+      <div class="check-row"><input type="checkbox" id="c7"><label for="c7">台灣駕照日文譯本（監理站申請）</label></div>
+    </div>
+    <div class="prep-card">
+      <div class="prep-icon" style="background:#dbeafe">🏨</div>
+      <h3>住宿（已訂）</h3>
+      <div class="hotel-row"><span>4/16 三井花園飯店熊本</span><span class="badge badge-green">✅ 已訂</span></div>
+      <div class="hotel-row"><span>4/17 Forza飯店長崎</span><span class="badge badge-green">✅ 已訂</span></div>
+      <div class="hotel-row"><span>4/18 熊本新市街里士滿</span><span class="badge badge-green">✅ 已訂</span></div>
+      <div class="hotel-row"><span>4/19 Grids Premium酒店</span><span class="badge badge-green">✅ 已訂</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- DAY NAV -->
+<div class="day-nav" id="day-nav">
+  <div class="day-nav-inner">
+    <a class="day-btn" href="#day1" data-target="day1">4/16 熊本</a>
+    <a class="day-btn" href="#day2" data-target="day2">4/17 長崎</a>
+    <a class="day-btn" href="#day3" data-target="day3">4/18 佐賀</a>
+    <a class="day-btn" href="#day4" data-target="day4">4/19 熊本</a>
+    <a class="day-btn" href="#day5" data-target="day5">4/20 返台</a>
+  </div>
+</div>
+
+<main>
+
+  <!-- DAY 1 -->
+  <section class="day-section fade-up" id="day1">
+    <div class="day-header">
+      <div class="day-bubble" style="background:var(--red);color:var(--red)"><span style="color:#fff;font-size:.6rem;text-align:center">DAY<br/>1</span></div>
+      <div><div class="day-meta" style="color:var(--red)">Thursday · April 16</div><h2 class="day-title">抵達熊本，初探城下町</h2></div>
+    </div>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--blue);background:var(--blue)"></div>
+        <div class="tl-card card-transport">
+          <span class="tl-tag" style="background:#bfdbfe;color:#1e40af">✈️ 交通</span><span class="tl-time">07:30 起飛 → 10:45 抵達</span>
+          <p style="margin-top:7px">搭機場巴士在「<strong>SAKURA MACHI</strong>」站下車，飯店寄放行李。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--orange);background:var(--orange)"></div>
+        <div class="tl-card card-food">
+          <span class="tl-tag" style="background:#fed7aa;color:#c2410c">🍜 午餐</span>
+          <h3>城彩苑</h3>
+          <p>熊本拉麵、馬肉料理，門口有<strong>免費接駁車</strong>直達熊本城！</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--red);background:var(--red)"></div>
+        <div class="tl-card card-sight">
+          <span class="tl-tag" style="background:#fecaca;color:#991b1b">🏯 景點</span>
+          <h3>熊本城天守閣</h3>
+          <p>日本三大名城之一。逛完後方出口步行 5 分即達加藤神社。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--green);background:var(--green)"></div>
+        <div class="tl-card card-shrine">
+          <span class="tl-tag" style="background:#bbf7d0;color:#15803d">⛩️ 神社</span>
+          <h3>加藤神社</h3>
+          <p>供奉加藤清正，可俯瞰熊本城全景。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:#7c3aed;background:#7c3aed"></div>
+        <div class="tl-card card-shop">
+          <span class="tl-tag" style="background:#e9d5ff;color:#6b21a8">🛍️ 下午</span>
+          <h3>SAKURA MACHI ＆ 新市街</h3>
+          <p>九州最大複合商場，頂樓可看熊本城。新市街百年拱廊街步行3分。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--red);background:var(--red)"></div>
+        <div class="tl-card card-sight">
+          <span class="tl-tag" style="background:#fecaca;color:#991b1b">🍽️ 晚餐</span><span class="tl-time">點選你的選擇</span>
+          <div class="options-grid" id="d1-dinner">
+            <div class="option-card" onclick="pick('d1-dinner',this)">
+              <div class="option-name">🐷 勝烈亭 辛島町本店</div>
+              <div class="option-loc">📍 SAKURA MACHI 步行 5 分</div>
+              <span class="badge badge-red" style="font-size:.62rem">米其林推薦</span>
+              <div class="option-desc" style="margin-top:5px">鹿兒島六白黑豬炸豬排，外酥內嫩。</div>
+              <div class="option-price">¥1,500–¥2,500</div>
+            </div>
+            <div class="option-card" onclick="pick('d1-dinner',this)">
+              <div class="option-name">🐴 MUTSU五郎</div>
+              <div class="option-loc">📍 花畑町步行 2 分</div>
+              <span class="badge badge-orange" style="font-size:.62rem">馬肉專門</span>
+              <div class="option-desc" style="margin-top:5px">30餘種馬肉料理，搭配熊本燒酒。</div>
+              <div class="option-price">¥4,000–¥5,000</div>
+            </div>
+            <div class="option-card" onclick="pick('d1-dinner',this)">
+              <div class="option-name">🐟 惠比壽門</div>
+              <div class="option-loc">📍 花畑町步行 5 分</div>
+              <span class="badge badge-blue" style="font-size:.62rem">活魚居酒屋</span>
+              <div class="option-desc" style="margin-top:5px">天草直送活蝦、螺肉、奶油鮑魚。</div>
+              <div class="option-price">¥3,000–¥4,500</div>
+            </div>
+            <div class="option-card" onclick="pick('d1-dinner',this)">
+              <div class="option-name">🍜 熊本拉麵 天外天</div>
+              <div class="option-loc">📍 JR熊本站步行 1 分</div>
+              <span class="badge badge-yellow" style="font-size:.62rem">輕食選擇</span>
+              <div class="option-desc" style="margin-top:5px">1989年創業，焦蒜豚骨，落地第一碗。</div>
+              <div class="option-price">¥900–¥1,200</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="map-wrap"><div class="map-label">🗺️ Day 1 景點地圖 — 熊本市區</div><div style="position:relative"><div id="map-day1" class="leaflet-map"></div><div class="map-tap-overlay" id="ov1" onclick="enableMap('map-day1','ov1')"><span>點擊啟用地圖</span></div></div></div>
+    <div class="hotel-strip"><div class="hs-icon">🏨</div><div><div class="hs-label">今晚住宿</div><div class="hs-name">三井花園飯店熊本</div></div><div class="hs-badge"><span class="badge badge-green">✅ 已訂</span></div></div>
+  </section>
+
+  <!-- DAY 2 -->
+  <section class="day-section fade-up" id="day2">
+    <div class="day-header">
+      <div class="day-bubble" style="background:var(--blue);color:var(--blue)"><span style="color:#fff;font-size:.6rem;text-align:center">DAY<br/>2</span></div>
+      <div><div class="day-meta" style="color:var(--blue)">Friday · April 17</div><h2 class="day-title">長崎・港灣與夜景之城</h2></div>
+    </div>
+    <div class="announce">🚃 長崎路面電車一日券 ¥600 — 單程¥140，買一日券超划算！</div>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--blue);background:var(--blue)"></div>
+        <div class="tl-card card-transport">
+          <span class="tl-tag" style="background:#bfdbfe;color:#1e40af">🚅 交通</span><span class="tl-time">JR PASS 今日啟用最划算</span>
+          <p style="margin-top:7px">熊本 → 新鳥栖 → 武雄溫泉 → 長崎　全程約 2.5 小時</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--orange);background:var(--orange)"></div>
+        <div class="tl-card card-food">
+          <span class="tl-tag" style="background:#fed7aa;color:#c2410c">☀️ 上午</span>
+          <h3>大浦天主堂 ＆ 哥拉巴園</h3>
+          <div class="sub-grid">
+            <div class="sub-box"><strong>⛪ 大浦天主堂 <span class="badge badge-yellow" style="font-size:.58rem">世界遺產</span></strong>日本最古老哥特式木造教堂。💴 ¥1,000</div>
+            <div class="sub-box"><strong>🌿 哥拉巴園 <span class="badge badge-green" style="font-size:.58rem">必訪</span></strong>俯瞰長崎港，春天玫瑰盛開。💴 ¥620</div>
+          </div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--red);background:var(--red)"></div>
+        <div class="tl-card card-sight">
+          <span class="tl-tag" style="background:#fecaca;color:#991b1b">🍽️ 午餐</span><span class="tl-time">三選一</span>
+          <div class="options-grid" id="d2-lunch">
+            <div class="option-card" onclick="pick('d2-lunch',this)">
+              <div class="option-name">🍛 ツル茶ん 本店</div>
+              <div class="option-loc">📍 思案橋步行 2 分</div>
+              <span class="badge badge-red" style="font-size:.62rem">強推★★★</span>
+              <div class="option-desc" style="margin-top:5px">土耳其飯聖地，長崎限定「吃的奶昔冰」必點！</div>
+              <div class="option-price">¥1,280–¥1,580</div>
+            </div>
+            <div class="option-card" onclick="pick('d2-lunch',this)">
+              <div class="option-name">🍣 若竹丸 浜町店</div>
+              <div class="option-loc">📍 浜町アーケード</div>
+              <span class="badge badge-blue" style="font-size:.62rem">海鮮必吃</span>
+              <div class="option-desc" style="margin-top:5px">現點現握，長崎特有食材，性價比高。</div>
+              <div class="option-price">¥1,500–¥2,500</div>
+            </div>
+            <div class="option-card" onclick="pick('d2-lunch',this)">
+              <div class="option-name">🥣 強棒麵 — 王鶴</div>
+              <div class="option-loc">📍 新地中華街</div>
+              <div class="option-desc" style="margin-top:5px">八寶海鮮強棒麵螃蟹蝦子堆滿頂。</div>
+              <div class="option-price">¥2,300</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:#334155;background:#334155"></div>
+        <div class="tl-card card-peace">
+          <span class="tl-tag" style="background:rgba(255,255,255,.15);color:#e2e8f0">🕊️ 下午</span>
+          <h3>原爆資料館 ＆ 平和公園</h3>
+          <div class="info-grid">
+            <div class="info-box"><strong>🏛️ 原爆資料館</strong>中文語音導覽，建議停留1.5–2小時。⏰ 8:30–17:30 💴 ¥200</div>
+            <div class="info-box"><strong>🕊️ 平和公園</strong>「平和祈念像」，全日免費開放。</div>
+          </div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:#4f46e5;background:#4f46e5"></div>
+        <div class="tl-card" style="background:#eef2ff;border:1px solid #c7d2fe">
+          <span class="tl-tag" style="background:#c7d2fe;color:#3730a3">🌆 傍晚</span><span class="badge badge-yellow" style="font-size:.62rem;margin-left:4px">世界新三大夜景</span>
+          <h3 style="color:var(--gray-900)">稻佐山展望台 夜景</h3>
+          <p style="color:var(--gray-700)">海拔333m，4月約19:30後搭纜車最划算。來回 ¥1,250/人</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:#e11d48;background:#e11d48"></div>
+        <div class="tl-card card-sight">
+          <span class="tl-tag" style="background:#fecaca;color:#991b1b">🍽️ 晚餐</span><span class="tl-time">四選一</span>
+          <div class="options-grid" id="d2-dinner">
+            <div class="option-card" onclick="pick('d2-dinner',this)">
+              <div class="option-name">🔥 いろり家 思案橋店</div>
+              <div class="option-loc">📍 思案橋步行 1 分</div>
+              <span class="badge badge-red" style="font-size:.62rem">強推★★★</span>
+              <div class="option-desc" style="margin-top:5px">圍爐裏風格，五島牛炭火燒烤。</div>
+              <div class="option-price">¥3,500–¥5,000</div>
+            </div>
+            <div class="option-card" onclick="pick('d2-dinner',this)">
+              <div class="option-name">🐓 逸鳥逸舌 思案橋店</div>
+              <div class="option-loc">📍 思案橋步行 1 分</div>
+              <span class="badge badge-orange" style="font-size:.62rem">串燒專門</span>
+              <div class="option-desc" style="margin-top:5px">逸品烤雞×熟成牛舌，木炭現烤。</div>
+              <div class="option-price">¥3,000–¥4,500</div>
+            </div>
+            <div class="option-card" onclick="pick('d2-dinner',this)">
+              <div class="option-name">🥩 大阪屋 濱町店</div>
+              <div class="option-loc">📍 思案橋步行 1 分</div>
+              <span class="badge badge-red" style="font-size:.62rem">百大名店</span>
+              <div class="option-desc" style="margin-top:5px">食べログ 3.72，長崎和牛燒肉。</div>
+              <div class="option-price">¥5,000–¥7,000</div>
+            </div>
+            <div class="option-card" onclick="pick('d2-dinner',this)">
+              <div class="option-name">🫕 吉宗 本店</div>
+              <div class="option-loc">📍 西浜町步行 3 分</div>
+              <span class="badge badge-yellow" style="font-size:.62rem">150年老店</span>
+              <div class="option-desc" style="margin-top:5px">長崎茶碗蒸元祖，蒸壽司套餐。</div>
+              <div class="option-price">¥1,500–¥2,500</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="map-wrap"><div class="map-label">🗺️ Day 2 景點地圖 — 長崎市區</div><div style="position:relative"><div id="map-day2" class="leaflet-map"></div><div class="map-tap-overlay" id="ov2" onclick="enableMap('map-day2','ov2')"><span>點擊啟用地圖</span></div></div></div>
+    <div class="hotel-strip"><div class="hs-icon">🏨</div><div><div class="hs-label">今晚住宿</div><div class="hs-name">Forza飯店長崎</div></div><div class="hs-badge"><span class="badge badge-green">✅ 已訂</span></div></div>
+  </section>
+
+  <!-- DAY 3 -->
+  <section class="day-section fade-up" id="day3">
+    <div class="day-header">
+      <div class="day-bubble" style="background:var(--green);color:var(--green)"><span style="color:#fff;font-size:.6rem;text-align:center">DAY<br/>3</span></div>
+      <div><div class="day-meta" style="color:var(--green)">Saturday · April 18</div><h2 class="day-title">佐賀租車小旅行</h2></div>
+    </div>
+    <div class="tl-card card-car" style="margin-bottom:20px;border-radius:14px;padding:16px">
+      <p style="font-weight:700;color:var(--green);margin-bottom:8px">🚗 租車行程重點</p>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:.78rem;color:var(--gray-700)">
+        <div style="display:flex;gap:7px"><span style="color:var(--red);flex-shrink:0">●</span><span>搭新幹線至<strong>武雄溫泉站</strong>（JR PASS 可用）</span></div>
+        <div style="display:flex;gap:7px"><span style="color:var(--red);flex-shrink:0">●</span><span><strong>TOYOTA 武雄溫泉站前店</strong>取車（建議提前線上預訂）</span></div>
+        <div style="display:flex;gap:7px"><span style="color:var(--red);flex-shrink:0">●</span><span>取車前先劃當日回熊本的車位</span></div>
+        <div style="display:flex;gap:7px"><span style="color:var(--red);flex-shrink:0">●</span><span>加滿油還車後搭車返熊本</span></div>
+      </div>
+    </div>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--orange);background:var(--orange)"></div>
+        <div class="tl-card card-shrine">
+          <span class="tl-tag" style="background:#bbf7d0;color:#15803d">⛩️ 景點 1</span>
+          <h3 style="color:var(--gray-900)">祐德稻荷神社（鹿島市）</h3>
+          <p style="color:var(--gray-700)">日本三大稻荷之一，朱紅色樓門壯觀，被稱為「鎮西日光」。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:#0e7490;background:#0e7490"></div>
+        <div class="tl-card card-info">
+          <span class="tl-tag" style="background:#bae6fd;color:#0369a1">🌊 景點 2</span><span class="badge badge-red" style="font-size:.62rem;margin-left:4px">IG必拍</span>
+          <h3 style="color:var(--gray-900)">大魚神社海中鳥居</h3>
+          <p style="color:var(--gray-700)">漲潮時彷彿浮在水面，退潮可步行接近。出發前查詢「有明海 潮汐 4月18日」！</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:#7c3aed;background:#7c3aed"></div>
+        <div class="tl-card card-shop">
+          <span class="tl-tag" style="background:#e9d5ff;color:#6b21a8">📚 景點 3</span>
+          <h3 style="color:var(--gray-900)">蔦屋書店 武雄市圖書館</h3>
+          <p style="color:var(--gray-700)">全球最美圖書館之一，還車前順道一遊。</p>
+        </div>
+      </div>
+    </div>
+    <div class="map-wrap"><div class="map-label">🗺️ Day 3 景點地圖 — 佐賀縣</div><div style="position:relative"><div id="map-day3" class="leaflet-map"></div><div class="map-tap-overlay" id="ov3" onclick="enableMap('map-day3','ov3')"><span>點擊啟用地圖</span></div></div></div>
+    <div class="hotel-strip"><div class="hs-icon">🏨</div><div><div class="hs-label">今晚住宿</div><div class="hs-name">熊本新市街里士滿飯店</div></div><div class="hs-badge"><span class="badge badge-green">✅ 已訂</span></div></div>
+  </section>
+
+  <!-- DAY 4 -->
+  <section class="day-section fade-up" id="day4">
+    <div class="day-header">
+      <div class="day-bubble" style="background:var(--orange);color:var(--orange)"><span style="color:#fff;font-size:.6rem;text-align:center">DAY<br/>4</span></div>
+      <div><div class="day-meta" style="color:var(--orange)">Sunday · April 19</div><h2 class="day-title">熊本深度遊 & 購物狂歡</h2></div>
+    </div>
+    <div class="announce" style="background:linear-gradient(90deg,var(--orange),#f59e0b)">🚃 熊本市電一日券 ¥500！景點全在沿線，搭3次以上就回本！</div>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--green);background:var(--green)"></div>
+        <div class="tl-card card-shrine">
+          <span class="tl-tag" style="background:#bbf7d0;color:#15803d">☀️ 上午</span>
+          <h3 style="color:var(--gray-900)">水前寺成趣園</h3>
+          <p style="color:var(--gray-700)">400年歷史桃山式迴遊庭園，4月櫻花尾聲景色絕美！記得買即食糰子！</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--red);background:var(--red)"></div>
+        <div class="tl-card card-sight">
+          <span class="tl-tag" style="background:#fecaca;color:#991b1b">🐻 午前</span>
+          <h3>熊本熊廣場</h3>
+          <p>免費入場！表演約 10:30、13:30、15:30，出發前查官網確認。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--orange);background:var(--orange)"></div>
+        <div class="tl-card card-food">
+          <span class="tl-tag" style="background:#fed7aa;color:#c2410c">🍽️ 午餐</span>
+          <div class="options-grid" id="d4-lunch">
+            <div class="option-card" onclick="pick('d4-lunch',this)">
+              <div class="option-name">🐴 菅乃屋 本店</div>
+              <div class="option-loc">📍 下通商店街附近</div>
+              <div class="option-desc" style="margin-top:5px">熊本最著名馬肉料理老店，桜肉鮮嫩無腥味。</div>
+            </div>
+            <div class="option-card" onclick="pick('d4-lunch',this)">
+              <div class="option-name">🥣 黑亭 本店</div>
+              <div class="option-loc">📍 市電「味噌天神前」附近</div>
+              <div class="option-desc" style="margin-top:5px">創業70年熊本拉麵老舖，焦香蒜油豚骨湯頭。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <h3 style="font-weight:700;font-size:.95rem;margin:24px 0 14px">🛍️ 下午購物衝刺路線</h3>
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px">
+      <div class="prep-card" style="border-left:3px solid var(--red);padding:14px"><div style="font-weight:700;font-size:.85rem;margin-bottom:5px">🏬 AMU PLAZA</div><p style="font-size:.75rem;color:var(--gray-700)">JR熊本站直結，掃貨首選。</p></div>
+      <div class="prep-card" style="border-left:3px solid #7c3aed;padding:14px"><div style="font-weight:700;font-size:.85rem;margin-bottom:5px">🏪 鶴屋百貨</div><p style="font-size:.75rem;color:var(--gray-700)">九州最大百貨，熊本熊廣場同棟。</p></div>
+      <div class="prep-card" style="border-left:3px solid var(--orange);padding:14px"><div style="font-weight:700;font-size:.85rem;margin-bottom:5px">🛒 下通拱廊街</div><p style="font-size:.75rem;color:var(--gray-700)">扭蛋機、藥妝、潮流服飾天堂。</p></div>
+      <div class="prep-card" style="border-left:3px solid var(--blue);padding:14px"><div style="font-weight:700;font-size:.85rem;margin-bottom:5px">💊 上通 ＆ 藥妝</div><p style="font-size:.75rem;color:var(--gray-700)">マツモトキヨシ，眼藥水掃貨。</p></div>
+    </div>
+
+    <div class="shop-section">
+      <div class="shop-header">
+        <div class="shop-title">🛍️ 購物戰利品清單</div>
+        <div class="shop-counter" id="shop-count"></div>
+      </div>
+      <div class="shop-grid" id="shop-list"></div>
+      <div class="shop-add">
+        <input id="shop-input" type="text" placeholder="新增想買的東西…" autocomplete="off"/>
+        <button onclick="addShop()">＋ 新增</button>
+      </div>
+    </div>
+
+    <div class="map-wrap" style="margin-top:18px"><div class="map-label">🗺️ Day 4 景點地圖 — 熊本深度遊</div><div style="position:relative"><div id="map-day4" class="leaflet-map"></div><div class="map-tap-overlay" id="ov4" onclick="enableMap('map-day4','ov4')"><span>點擊啟用地圖</span></div></div></div>
+    <div class="hotel-strip"><div class="hs-icon">🏨</div><div><div class="hs-label">今晚住宿</div><div class="hs-name">Grids Premium 酒店</div></div><div class="hs-badge"><span class="badge badge-green">✅ 已訂</span></div></div>
+  </section>
+
+  <!-- DAY 5 -->
+  <section class="day-section fade-up" id="day5">
+    <div class="day-header">
+      <div class="day-bubble" style="background:#374151;color:#374151"><span style="color:#fff;font-size:.6rem;text-align:center">DAY<br/>5</span></div>
+      <div><div class="day-meta" style="color:#6b7280">Monday · April 20</div><h2 class="day-title">熊本市區 & 返台</h2></div>
+    </div>
+    <div class="tl">
+      <div class="tl-item">
+        <div class="tl-dot" style="color:#d97706;background:#d97706"></div>
+        <div class="tl-card card-cafe">
+          <span class="tl-tag" style="background:#fde68a;color:#92400e">☀️ 早上</span>
+          <p style="margin-top:6px">輕鬆逛市區，最後一頓早餐 ☕ 整理行李，確認護照、機票、戰利品。</p>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="color:var(--red);background:var(--red)"></div>
+        <div class="tl-card card-sight">
+          <span class="tl-tag" style="background:#fecaca;color:#991b1b">✈️ 返台</span><span style="font-weight:700;color:var(--red);margin-left:5px">11:55 起飛</span>
+          <p style="margin-top:7px">熊本空港 → 桃園。<strong>早上 9:00 前出發</strong>搭機場巴士（約 50 分鐘）。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BUDGET -->
+  <div class="budget-strip fade-up">
+    <div class="budget-title">💴 每日預算估算（點選日期）</div>
+    <div class="budget-days">
+      <div class="budget-day active" onclick="showBudget(0,this)"><div class="budget-day-label">Day 1</div><div class="budget-day-num">¥8,500</div></div>
+      <div class="budget-day" onclick="showBudget(1,this)"><div class="budget-day-label">Day 2</div><div class="budget-day-num">¥12,000</div></div>
+      <div class="budget-day" onclick="showBudget(2,this)"><div class="budget-day-label">Day 3</div><div class="budget-day-num">¥9,000</div></div>
+      <div class="budget-day" onclick="showBudget(3,this)"><div class="budget-day-label">Day 4</div><div class="budget-day-num">¥15,000</div></div>
+      <div class="budget-day" onclick="showBudget(4,this)"><div class="budget-day-label">Day 5</div><div class="budget-day-num">¥2,000</div></div>
+    </div>
+    <div class="budget-breakdown visible" id="budget-bd"></div>
+    <div class="budget-total"><div class="b-total-label">五日合計估算</div><div class="b-total-val">¥46,500 / 人</div></div>
+  </div>
+
+  <!-- REMINDERS -->
+  <div class="fade-up" style="margin-top:48px;margin-bottom:48px">
+    <div class="section-header">
+      <div class="section-eyebrow" style="color:var(--red)">Don't Forget</div>
+      <h2 class="section-title">行前溫馨提醒</h2>
+    </div>
+    <div class="rem-grid">
+      <div class="rem-card" style="border-color:var(--red)"><div class="rem-icon">🚗</div><div><h4>租車備妥駕照＋日文譯本</h4><p>監理站申請，4月週末建議提前線上預訂。</p></div></div>
+      <div class="rem-card" style="border-color:#0e7490"><div class="rem-icon">🌊</div><div><h4>查詢大魚神社潮汐</h4><p>搜尋「有明海 潮汐 4月18日」，漲潮時最美！</p></div></div>
+      <div class="rem-card" style="border-color:#d97706"><div class="rem-icon">🍓</div><div><h4>草莓季節確認</h4><p>4月中是尾聲，不用特別跑遠，隨緣就好！</p></div></div>
+      <div class="rem-card" style="border-color:var(--green)"><div class="rem-icon">💳</div><div><h4>準備小額零錢</h4><p>神社投幣、扭蛋機、市電需要 ¥100 硬幣！</p></div></div>
+      <div class="rem-card" style="border-color:var(--blue)"><div class="rem-icon">🎟️</div><div><h4>軍艦島提前預約</h4><p>Klook 或船公司官網預約，登島受天氣影響大。</p></div></div>
+      <div class="rem-card" style="border-color:#7c3aed"><div class="rem-icon">🐻</div><div><h4>熊本熊廣場表演時間</h4><p>出發前一個月上官網確認4月表演時刻表！</p></div></div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="fade-up" style="margin-bottom:64px">
+    <div class="section-header" style="margin-bottom:20px">
+      <div class="section-eyebrow" style="color:#4f46e5">Trip Review</div>
+      <h2 class="section-title">🔍 行前必確認清單</h2>
+    </div>
+    <div class="action-list">
+      <div class="action-item" style="border-color:var(--red)"><div style="font-size:1.4rem">🎟️</div><div><h4>軍艦島 Klook 預約（Day 2）</h4><p>需提前預約並確認天氣備案。</p></div></div>
+      <div class="action-item" style="border-color:var(--orange)"><div style="font-size:1.4rem">🚅</div><div><h4>JR PASS 啟用日期確認</h4><p>建議 4/17 長崎當天在熊本站啟用，涵蓋 Day 2、3、4 最划算。</p></div></div>
+      <div class="action-item" style="border-color:#d97706"><div style="font-size:1.4rem">🚗</div><div><h4>TOYOTA 武雄溫泉站前店預訂（Day 3）</h4><p>台灣駕照日文譯本須在監理站申請。</p></div></div>
+      <div class="action-item" style="border-color:#0e7490"><div style="font-size:1.4rem">🌊</div><div><h4>大魚神社潮汐確認（Day 3）</h4><p>搜尋「有明海 潮汐 4月18日」。</p></div></div>
+      <div class="action-item" style="border-color:var(--green)"><div style="font-size:1.4rem">🐻</div><div><h4>熊本熊廣場查表演時間（Day 4）</h4><p>出發前一個月上官網確認時刻表。</p></div></div>
+      <div class="action-item" style="border-color:#7c3aed"><div style="font-size:1.4rem">✈️</div><div><h4>Day 5 機場務必 9:00 前出發</h4><p>JX846 起飛 11:55，留足 2 小時緩衝。</p></div></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="f-logo serif">🌸 九州 5 日遊</div>
+  <p>2026年4月16日 — 4月20日</p>
+  <p>熊本 · 長崎 · 佐賀 · 旅途愉快 ✈️</p>
+  <p style="margin-top:14px;font-size:.68rem;color:rgba(255,255,255,.2)">© 2026 探索日本 Japan Travel</p>
+</footer>
+
+<script>
+// ── NAV ──
+const nav=document.getElementById('main-nav');
+window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20),{passive:true});
+
+// ── Hamburger ──
+const hbg=document.getElementById('hamburger');
+const mob=document.getElementById('mobile-menu');
+const mbg=document.getElementById('menu-bg');
+function closeMenu(){hbg.classList.remove('open');mob.classList.remove('open');document.body.style.overflow=''}
+hbg.addEventListener('click',()=>{
+  const open=mob.classList.toggle('open');
+  hbg.classList.toggle('open',open);
+  document.body.style.overflow=open?'hidden':'';
+});
+mbg.addEventListener('click',closeMenu);
+
+// ── Fade-up ──
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')}),{threshold:.05,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.fade-up').forEach(el=>obs.observe(el));
+
+// ── Day nav active ──
+const dayIds=['day1','day2','day3','day4','day5'];
+const dayBtns=document.querySelectorAll('.day-btn');
+function updateNav(){
+  let cur='';
+  dayIds.forEach(id=>{const s=document.getElementById(id);if(s&&scrollY>=s.offsetTop-160)cur=id});
+  dayBtns.forEach(b=>b.classList.toggle('active',b.dataset.target===cur));
+}
+window.addEventListener('scroll',updateNav,{passive:true});
+updateNav();
+
+// ── Option picker ──
+function pick(gid,el){
+  document.querySelectorAll('#'+gid+' .option-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+// ── Countdown ──
+const TARGET=new Date('2026-04-16T07:30:00+08:00');
+function updateCD(){
+  const diff=TARGET-Date.now();
+  if(diff<=0){document.getElementById('countdown-units').innerHTML='<div class="cd-gone">🎉 出發啦！旅途愉快！</div>';return}
+  const d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),s=Math.floor(diff%6e4/1e3);
+  ['d','h','m','s'].forEach((k,i)=>document.getElementById('cd-'+k).textContent=String([d,h,m,s][i]).padStart(2,'0'));
+}
+updateCD();setInterval(updateCD,1000);
+
+// ── Weather ──
+const CITIES=[
+  {name:'熊本',icon:'🏯',color:'#fee2e2',lat:32.8031,lon:130.7079},
+  {name:'長崎',icon:'⛪',color:'#dbeafe',lat:32.7503,lon:129.8779},
+  {name:'佐賀',icon:'⛩️',color:'#dcfce7',lat:33.2635,lon:130.3008},
+];
+const WMO={0:'☀️ 晴天',1:'🌤️ 大致晴',2:'⛅ 部分多雲',3:'☁️ 陰天',45:'🌫️ 霧',48:'🌫️ 霧',51:'🌦️ 毛毛雨',53:'🌦️ 毛毛雨',55:'🌦️ 毛毛雨',61:'🌧️ 小雨',63:'🌧️ 雨',65:'🌧️ 大雨',71:'🌨️ 小雪',73:'🌨️ 雪',80:'🌦️ 陣雨',81:'🌦️ 陣雨',95:'⛈️ 雷雨',99:'⛈️ 大雷雨'};
+function todayJST(){const d=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Tokyo'}));return d.toISOString().slice(0,10)}
+function fmtDate(s){const[,m,d]=s.split('-');return`${+m}/${+d}`}
+function dayLabel(s){return'日一二三四五六'[new Date(s+'T00:00:00+09:00').getDay()]}
+
+async function loadWeather(){
+  const grid=document.getElementById('weather-grid');
+  const today=todayJST();
+  const end=new Date(today);end.setDate(end.getDate()+6);
+  const endStr=end.toISOString().slice(0,10);
+  try{
+    const results=await Promise.all(CITIES.map(c=>
+      fetch(`https://api.open-meteo.com/v1/forecast?latitude=${c.lat}&longitude=${c.lon}&current=temperature_2m,weathercode,windspeed_10m,relative_humidity_2m&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FTokyo&start_date=${today}&end_date=${endStr}`).then(r=>r.json())
+    ));
+    grid.innerHTML='';
+    results.forEach((data,i)=>{
+      const c=CITIES[i],cur=data.current;
+      const cw=WMO[cur.weathercode]||'🌡️ 未知';
+      const ci=cw.split(' ')[0],cd=cw.split(' ').slice(1).join(' ');
+      const {time,weathercode,temperature_2m_max,temperature_2m_min,precipitation_probability_max}=data.daily;
+      const daysHtml=time.map((t,j)=>{
+        const wc=weathercode[j],icon=(WMO[wc]||'🌡️').split(' ')[0];
+        return`<div class="wd${t===today?' today':''}">
+          <div class="wd-date">${fmtDate(t)}</div>
+          <div style="font-size:.58rem;color:#94a3b8">週${dayLabel(t)}</div>
+          <div class="wd-icon">${icon}</div>
+          <div class="wd-hi">${Math.round(temperature_2m_max[j])}°</div>
+          <div class="wd-lo">${Math.round(temperature_2m_min[j])}°</div>
+          <div class="wd-rain">💧${precipitation_probability_max[j]}%</div>
+        </div>`;
+      }).join('');
+      grid.innerHTML+=`<div class="weather-card">
+        <div class="weather-city">
+          <div class="weather-city-icon" style="background:${c.color}">${c.icon}</div>
+          <div><div class="weather-city-name">${c.name}</div><div class="weather-city-date">今日 ${fmtDate(today)} 即時天氣</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;background:${c.color};border-radius:11px;padding:11px 13px;margin-bottom:12px">
+          <div style="font-size:1.8rem">${ci}</div>
+          <div><div style="font-size:1.3rem;font-weight:900;color:#111">${Math.round(cur.temperature_2m)}°C</div><div style="font-size:.68rem;color:#6b7280">${cd}</div></div>
+          <div style="margin-left:auto;text-align:right;font-size:.68rem;color:#6b7280"><div>💨 ${Math.round(cur.windspeed_10m)} km/h</div><div>💧 ${cur.relative_humidity_2m}%</div></div>
+        </div>
+        <div style="font-size:.66rem;color:#9ca3af;margin-bottom:7px">未來 7 天預報</div>
+        <div class="weather-days">${daysHtml}</div>
+      </div>`;
+    });
+  }catch(e){
+    grid.innerHTML='<div class="weather-loading">⚠️ 天氣資料暫時無法載入，請稍後再試。</div>';
+  }
+}
+loadWeather();
+
+// ── Maps (Leaflet) — tap-to-enable for iOS ──
+const mapIcon=(color,emoji)=>L.divIcon({
+  html:`<div style="background:${color};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25)">${emoji}</div>`,
+  className:'',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-16]
+});
+
+// detect mobile
+const isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+function initMap(id,center,zoom,spots){
+  const m=L.map(id,{scrollWheelZoom:false,dragging:!isMobile,tap:false}).setView(center,zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:18}).addTo(m);
+  spots.forEach(s=>{
+    L.marker(s.pos,{icon:mapIcon(s.color,s.emoji)}).addTo(m)
+      .bindPopup(`<strong>${s.name}</strong><br/><span style="font-size:.73rem;color:#6b7280">${s.desc}</span>`);
+  });
+  return m;
+}
+function enableMap(mapId,ovId){
+  document.getElementById(ovId).classList.add('hidden');
+  const m=window['_m_'+mapId];
+  if(m){m.dragging.enable();m.tap&&m.tap.enable()}
+}
+
+window._m_map_day1=initMap('map-day1',[32.806,130.706],14,[
+  {pos:[32.8064,130.7068],emoji:'🏯',color:'#dc2626',name:'熊本城天守閣',desc:'日本三大名城之一'},
+  {pos:[32.8091,130.7048],emoji:'⛩️',color:'#16a34a',name:'加藤神社',desc:'俯瞰熊本城全景'},
+  {pos:[32.7959,130.7053],emoji:'🏬',color:'#7c3aed',name:'SAKURA MACHI',desc:'九州最大複合商場'},
+  {pos:[32.7935,130.7202],emoji:'🏨',color:'#2563eb',name:'三井花園飯店',desc:'今晚住宿'},
+]);
+window._m_map_day2=initMap('map-day2',[32.748,129.877],14,[
+  {pos:[32.7370,129.8699],emoji:'⛪',color:'#2563eb',name:'大浦天主堂',desc:'世界遺產'},
+  {pos:[32.7359,129.8705],emoji:'🌿',color:'#16a34a',name:'哥拉巴園',desc:'俯瞰長崎港'},
+  {pos:[32.7445,129.8744],emoji:'🕊️',color:'#374151',name:'原爆資料館',desc:'歷史的重量'},
+  {pos:[32.7636,129.8694],emoji:'🌆',color:'#f97316',name:'稻佐山展望台',desc:'世界新三大夜景'},
+  {pos:[32.7503,129.8738],emoji:'🏨',color:'#2563eb',name:'Forza飯店',desc:'今晚住宿'},
+]);
+window._m_map_day3=initMap('map-day3',[33.1,130.1],11,[
+  {pos:[33.1001,130.0943],emoji:'⛩️',color:'#f97316',name:'祐德稻荷神社',desc:'日本三大稻荷'},
+  {pos:[33.0114,130.2002],emoji:'🌊',color:'#0e7490',name:'大魚神社海中鳥居',desc:'IG必拍・注意潮汐'},
+  {pos:[33.2769,130.0247],emoji:'📚',color:'#7c3aed',name:'蔦屋書店武雄市圖書館',desc:'全球最美圖書館'},
+]);
+window._m_map_day4=initMap('map-day4',[32.798,130.715],14,[
+  {pos:[32.7817,130.7317],emoji:'🌿',color:'#16a34a',name:'水前寺成趣園',desc:'400年桃山式庭園'},
+  {pos:[32.8006,130.7108],emoji:'🐻',color:'#dc2626',name:'熊本熊廣場',desc:'免費入場'},
+  {pos:[32.7959,130.7053],emoji:'🛍️',color:'#7c3aed',name:'SAKURA MACHI・下通',desc:'購物衝刺路線'},
+]);
+
+// on desktop, enable dragging immediately
+if(!isMobile){
+  ['ov1','ov2','ov3','ov4'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+}
+
+// ── Budget ──
+const budgets=[
+  [{label:'交通（機場巴士）',val:'¥800'},{label:'餐飲',val:'¥3,500'},{label:'熊本城入場',val:'¥800'},{label:'購物・雜費',val:'¥2,500'},{label:'飲料・小食',val:'¥900'}],
+  [{label:'JR 交通費',val:'¥3,000'},{label:'景點入場',val:'¥1,820'},{label:'餐飲',val:'¥4,500'},{label:'纜車（夜景）',val:'¥1,250'},{label:'購物・雜費',val:'¥1,430'}],
+  [{label:'JR 交通費',val:'¥2,000'},{label:'租車費用',val:'¥4,000'},{label:'油費',val:'¥800'},{label:'餐飲',val:'¥2,200'}],
+  [{label:'市電一日券',val:'¥500'},{label:'景點・體驗',val:'¥1,000'},{label:'餐飲',val:'¥3,500'},{label:'購物',val:'¥8,000'},{label:'雜費',val:'¥2,000'}],
+  [{label:'早餐',val:'¥600'},{label:'機場巴士',val:'¥800'},{label:'雜費',val:'¥600'}],
+];
+function showBudget(i,el){
+  document.querySelectorAll('.budget-day').forEach(d=>d.classList.remove('active'));
+  el.classList.add('active');
+  const bd=document.getElementById('budget-bd');
+  bd.className='budget-breakdown visible';
+  bd.innerHTML=budgets[i].map(b=>`<div class="b-item"><span class="b-label">${b.label}</span><span class="b-val">${b.val}</span></div>`).join('');
+}
+showBudget(0,document.querySelector('.budget-day'));
+
+// ── Shopping ──
+const DEF=[
+  {id:1,text:'🩹 貼紙（手帳紀念）',done:false},
+  {id:2,text:'👁️ 眼藥水（Rohto / 參天）',done:false},
+  {id:3,text:'🎰 扭蛋（BANDAI）',done:false},
+  {id:4,text:'🧢 New Era 帽子',done:false},
+  {id:5,text:'🐻 熊本熊限定周邊',done:false},
+  {id:6,text:'🍬 陣太鼓・伴手禮',done:false},
+  {id:7,text:'💊 藥妝掃貨',done:false},
+  {id:8,text:'👗 日系服飾 / 古著',done:false},
+];
+let items=[...DEF],nid=100;
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function renderShop(){
+  document.getElementById('shop-count').textContent=`${items.filter(i=>i.done).length} / ${items.length} 已勾選`;
+  document.getElementById('shop-list').innerHTML=items.map(it=>`
+    <div class="shop-item">
+      <input type="checkbox" id="si${it.id}" ${it.done?'checked':''} onchange="toggleShop(${it.id})"/>
+      <label for="si${it.id}">${esc(it.text)}</label>
+      <button class="shop-del" onclick="delShop(${it.id})">×</button>
+    </div>`).join('');
+}
+function toggleShop(id){const it=items.find(i=>i.id===id);if(it){it.done=!it.done;renderShop()}}
+function delShop(id){items=items.filter(i=>i.id!==id);renderShop()}
+function addShop(){
+  const inp=document.getElementById('shop-input'),t=inp.value.trim();
+  if(!t){inp.focus();return}
+  items.push({id:nid++,text:t,done:false});
+  renderShop();inp.value='';inp.focus();
+}
+document.getElementById('shop-input').addEventListener('keydown',e=>{if(e.key==='Enter')addShop()});
+renderShop();
+</script>
+</body>
+</html>
