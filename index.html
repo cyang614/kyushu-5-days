@@ -739,6 +739,10 @@ footer p{margin-top:4px}
         <input id="shop-input" type="text" placeholder="新增想買的東西…" autocomplete="off"/>
         <button onclick="addShop()">＋ 新增</button>
       </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <span id="shop-status" style="font-size:.72rem;transition:color .3s"></span>
+        <span style="font-size:.68rem;color:#9ca3af">☁️ 資料同步至 Firebase</span>
+      </div>
     </div>
 
     <div class="map-wrap" style="margin-top:18px"><div class="map-label">🗺️ Day 4 景點地圖 — 熊本深度遊</div><div style="position:relative"><div id="map-day4" class="leaflet-map"></div><div class="map-tap-overlay" id="ov4" onclick="enableMap('map-day4','ov4')"><span>點擊啟用地圖</span></div></div></div>
@@ -998,38 +1002,120 @@ function showBudget(i,el){
 }
 showBudget(0,document.querySelector('.budget-day'));
 
-// ── Shopping ──
+// ── Shopping + Firebase Realtime Database ──
+const FB_URL='https://kyushu-trip-c4125-default-rtdb.asia-southeast1.firebasedatabase.app/shopping';
+const FB_KEY='AIzaSyD_e1a6qW3m3MtpNj9xI5arl9d-vZZqJ8A';
 const DEF=[
-  {id:1,text:'🩹 貼紙（手帳紀念）',done:false},
-  {id:2,text:'👁️ 眼藥水（Rohto / 參天）',done:false},
-  {id:3,text:'🎰 扭蛋（BANDAI）',done:false},
-  {id:4,text:'🧢 New Era 帽子',done:false},
-  {id:5,text:'🐻 熊本熊限定周邊',done:false},
-  {id:6,text:'🍬 陣太鼓・伴手禮',done:false},
-  {id:7,text:'💊 藥妝掃貨',done:false},
-  {id:8,text:'👗 日系服飾 / 古著',done:false},
+  {id:'i1',text:'🩹 貼紙（手帳紀念）',done:false},
+  {id:'i2',text:'👁️ 眼藥水（Rohto / 參天）',done:false},
+  {id:'i3',text:'🎰 扭蛋（BANDAI）',done:false},
+  {id:'i4',text:'🧢 New Era 帽子',done:false},
+  {id:'i5',text:'🐻 熊本熊限定周邊',done:false},
+  {id:'i6',text:'🍬 陣太鼓・伴手禮',done:false},
+  {id:'i7',text:'💊 藥妝掃貨',done:false},
+  {id:'i8',text:'👗 日系服飾 / 古著',done:false},
 ];
-let items=[...DEF],nid=100;
+let items=[];
+
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function setShopStatus(msg,isErr=false){
+  const el=document.getElementById('shop-status');
+  if(!el)return;
+  el.textContent=msg;
+  el.style.color=isErr?'#dc2626':'#16a34a';
+  if(msg)setTimeout(()=>{el.textContent=''},2500);
+}
+
 function renderShop(){
   document.getElementById('shop-count').textContent=`${items.filter(i=>i.done).length} / ${items.length} 已勾選`;
-  document.getElementById('shop-list').innerHTML=items.map(it=>`
-    <div class="shop-item">
-      <input type="checkbox" id="si${it.id}" ${it.done?'checked':''} onchange="toggleShop(${it.id})"/>
-      <label for="si${it.id}">${esc(it.text)}</label>
-      <button class="shop-del" onclick="delShop(${it.id})">×</button>
-    </div>`).join('');
+  document.getElementById('shop-list').innerHTML=items.length===0
+    ?`<div style="grid-column:1/-1;text-align:center;color:#9ca3af;font-size:.8rem;padding:12px">載入中…</div>`
+    :items.map(it=>`
+      <div class="shop-item">
+        <input type="checkbox" id="si${it.id}" ${it.done?'checked':''} onchange="toggleShop('${it.id}')"/>
+        <label for="si${it.id}">${esc(it.text)}</label>
+        <button class="shop-del" onclick="delShop('${it.id}')">×</button>
+      </div>`).join('');
 }
-function toggleShop(id){const it=items.find(i=>i.id===id);if(it){it.done=!it.done;renderShop()}}
-function delShop(id){items=items.filter(i=>i.id!==id);renderShop()}
-function addShop(){
+
+// ── Firebase REST helpers ──
+async function fbGet(){
+  const r=await fetch(`${FB_URL}.json?auth=${FB_KEY}`);
+  return r.ok?r.json():null;
+}
+async function fbSet(data){
+  await fetch(`${FB_URL}.json?auth=${FB_KEY}`,{
+    method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+}
+async function fbPatch(data){
+  await fetch(`${FB_URL}.json?auth=${FB_KEY}`,{
+    method:'PATCH',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+}
+async function fbDelete(id){
+  await fetch(`${FB_URL}/${id}.json?auth=${FB_KEY}`,{method:'DELETE'});
+}
+
+// ── Load from Firebase on start ──
+async function loadShop(){
+  try{
+    const data=await fbGet();
+    if(data&&typeof data==='object'&&Object.keys(data).length>0){
+      items=Object.entries(data).map(([id,v])=>({id,text:v.text,done:!!v.done}));
+    } else {
+      // first time: seed defaults
+      items=[...DEF];
+      const obj={};
+      DEF.forEach(it=>{obj[it.id]={text:it.text,done:it.done}});
+      await fbSet(obj);
+    }
+  }catch(e){
+    items=[...DEF];
+    setShopStatus('⚠️ 無法連線 Firebase，使用本機模式',true);
+  }
+  renderShop();
+}
+
+async function toggleShop(id){
+  const it=items.find(i=>i.id===id);
+  if(!it)return;
+  it.done=!it.done;
+  renderShop();
+  try{
+    await fbPatch({[`${id}/done`]:it.done});
+    setShopStatus(it.done?'✅ 已勾選並儲存':'↩️ 已取消並儲存');
+  }catch(e){setShopStatus('⚠️ 儲存失敗',true)}
+}
+
+async function delShop(id){
+  items=items.filter(i=>i.id!==id);
+  renderShop();
+  try{
+    await fbDelete(id);
+    setShopStatus('🗑️ 已刪除');
+  }catch(e){setShopStatus('⚠️ 刪除失敗',true)}
+}
+
+async function addShop(){
   const inp=document.getElementById('shop-input'),t=inp.value.trim();
   if(!t){inp.focus();return}
-  items.push({id:nid++,text:t,done:false});
-  renderShop();inp.value='';inp.focus();
+  const id='i'+Date.now();
+  const newItem={id,text:t,done:false};
+  items.push(newItem);
+  renderShop();
+  inp.value='';inp.focus();
+  try{
+    await fbPatch({[id]:{text:t,done:false}});
+    setShopStatus('💾 已儲存到雲端');
+  }catch(e){setShopStatus('⚠️ 儲存失敗',true)}
 }
+
 document.getElementById('shop-input').addEventListener('keydown',e=>{if(e.key==='Enter')addShop()});
-renderShop();
+loadShop();
 </script>
 </body>
 </html>
